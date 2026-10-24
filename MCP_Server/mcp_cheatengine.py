@@ -746,13 +746,17 @@ def set_breakpoint(address: str, id: str = None, capture_registers: bool = True,
     }))
 
 @mcp.tool()
-def set_data_breakpoint(address: str, id: str = None, access_type: str = "w", size: int = 4) -> str:
-    """Set a hardware data breakpoint (watchpoint). Types: 'r' (read), 'w' (write), 'rw' (access)."""
+def set_data_breakpoint(address: str, id: str = None, access_type: str = "w", size: int = 4,
+                        capture_stack: bool = True, stack_depth: int = 16) -> str:
+    """Set a hardware data breakpoint (watchpoint). Types: 'r' (read), 'w' (write), 'rw' (access).
+    Each hit records registers and, by default, `stack_depth` return-address candidates (capture_stack=False to skip)."""
     return format_result(ce_client.send_command("set_data_breakpoint", {
-        "address": address, 
+        "address": address,
         "id": id,
         "access_type": access_type,
-        "size": size
+        "size": size,
+        "capture_stack": capture_stack,
+        "stack_depth": stack_depth
     }))
 
 @mcp.tool()

@@ -1445,7 +1445,7 @@ function cmd_set_breakpoint(params)
     local captureRegs = params.capture_registers ~= false
     local captureStackFlag = params.capture_stack or false
     local stackDepth = params.stack_depth or 16
-    
+
     if type(addr) == "string" then addr = getAddressSafe(addr) end
     if not addr then return { success = false, error = "Invalid address" } end
 
@@ -1510,7 +1510,11 @@ function cmd_set_data_breakpoint(params)
     local bpId = params.id
     local accessType = params.access_type or "w"  -- r, w, rw
     local size = params.size or 4
-    
+    -- Data breakpoints fire rarely, so stack capture defaults to on (pass capture_stack=false to skip).
+    local captureStackFlag = params.capture_stack
+    if captureStackFlag == nil then captureStackFlag = true end
+    local stackDepth = params.stack_depth or 16
+
     if type(addr) == "string" then addr = getAddressSafe(addr) end
     if not addr then return { success = false, error = "Invalid address" } end
 
@@ -1559,7 +1563,11 @@ function cmd_set_data_breakpoint(params)
             instruction = instPtr and disassemble(instPtr) or "???",
             arch = arch.is64bit and "x64" or "x86"
         }
-        
+
+        if captureStackFlag then
+            hitData.stack = captureStack(stackDepth)
+        end
+
         table.insert(serverState.breakpoint_hits[bpId], hitData)
         debug_continueFromBreakpoint(co_run)
         return 1
